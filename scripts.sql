@@ -223,5 +223,60 @@ ORDER BY 8 DESC
 LIMIT 5;
 
 -- Question c
+-- Part 1
+WITH data AS (SELECT
+    r.region,
+    fa.country_code,
+    fa.country_name,
+    fa.year,
+    fa.forest_area_sqkm AS forest_area,
+    la.total_area_sq_km AS land_area,
+    (la.total_area_sq_km - fa.forest_area_sqkm ) AS difference,
+    ((fa.forest_area_sqkm / la.total_area_sq_km) * 100) AS forest_percentage_in_country
+FROM forest_area fa
+INNER JOIN (
+        SELECT country_code, country_name, year, (total_area_sq_mi * 2.58999) AS total_area_sq_km
+        FROM land_area) la
+    ON fa.country_code = la.country_code AND fa.year = la.year
+INNER JOIN regions r
+    ON fa.country_code = r.country_code
+WHERE fa.year IN (2016) AND la.year IN (2016)
+ORDER BY fa.country_code),
+    data_2016 AS (SELECT * FROM data WHERE year = 2016 AND forest_area IS NOT NULL AND land_area IS NOT NULL ),
 
--- Question d
+    percentile_Table AS (SELECT a.country_name ,a.forest_percentage_in_country, NTILE(4) OVER (ORDER BY a.forest_percentage_in_country) AS percentile
+                        FROM data_2016 a)
+
+SELECT pt.percentile, COUNT(*)
+FROM percentile_Table pt
+GROUP BY 1
+ORDER BY 1 ASC;
+
+-- Part 2
+WITH data AS (SELECT
+    r.region,
+    fa.country_code,
+    fa.country_name,
+    fa.year,
+    fa.forest_area_sqkm AS forest_area,
+    la.total_area_sq_km AS land_area,
+    (la.total_area_sq_km - fa.forest_area_sqkm ) AS difference,
+    ((fa.forest_area_sqkm / la.total_area_sq_km) * 100) AS forest_percentage_in_country
+FROM forest_area fa
+INNER JOIN (
+        SELECT country_code, country_name, year, (total_area_sq_mi * 2.58999) AS total_area_sq_km
+        FROM land_area) la
+    ON fa.country_code = la.country_code AND fa.year = la.year
+INNER JOIN regions r
+    ON fa.country_code = r.country_code
+WHERE fa.year IN (2016) AND la.year IN (2016)
+ORDER BY fa.country_code),
+    data_2016 AS (SELECT * FROM data WHERE year = 2016 AND forest_area IS NOT NULL AND land_area IS NOT NULL ),
+
+    percentile_Table AS (SELECT a.country_name, a.region, a.forest_percentage_in_country, NTILE(4) OVER (ORDER BY a.forest_percentage_in_country) AS percentile
+                        FROM data_2016 a)
+
+SELECT pt.percentile, pt.country_name, pt.region, pt.forest_percentage_in_country
+FROM percentile_Table pt
+WHERE pt.percentile = 4
+ORDER BY 1, 4 DESC;
