@@ -29,14 +29,15 @@ WITH table_1990 AS (SELECT country_code, SUM(COALESCE(forest_area_sqkm, 0)) AS f
                     FROM forest_area
                     WHERE year = 2016 AND country_name = 'World'
                     GROUP BY 1)
-SELECT a.forest_area_sqkm AS year_1990,
-       b.forest_area_sqkm AS year_2016,
-       (a.forest_area_sqkm - b.forest_area_sqkm) AS difference,
-       (((a.forest_area_sqkm - b.forest_area_sqkm) / a.forest_area_sqkm) * 100) AS percentage
+SELECT ROUND(CAST(a.forest_area_sqkm AS DECIMAL), 2) AS year_1990,
+       ROUND(CAST(b.forest_area_sqkm AS DECIMAL), 2) AS year_2016,
+       ROUND(CAST((a.forest_area_sqkm - b.forest_area_sqkm) AS DECIMAL), 2) AS difference,
+       ROUND(CAST((((a.forest_area_sqkm - b.forest_area_sqkm) / a.forest_area_sqkm) * 100) AS DECIMAL), 2) AS percentage
 FROM table_1990 a
 JOIN table_2016 b ON a.country_code = b.country_code;
 
-SELECT *, (total_area_sq_mi * 2.58999) total_area_sq_km
+SELECT *,
+       ROUND(CAST((total_area_sq_mi * 2.58999) AS DECIMAL), 2) AS total_area_sq_km
 FROM land_area
 WHERE year = 2016 AND (total_area_sq_mi * 2.58999) < 1324449
 ORDER BY year, total_area_sq_mi DESC;
@@ -64,9 +65,10 @@ INNER JOIN regions r
 WHERE fa.year IN (1990, 2016) AND la.year IN (1990, 2016)
 ORDER BY fa.country_code)
 
-SELECT region, year , (SUM(forest_area) / SUM(land_area)) * 100 AS percentage_per_region
+SELECT region,
+       year ,
+       ROUND(CAST((SUM(forest_area) / SUM(land_area)) * 100 AS DECIMAL), 2) AS percentage_per_region
 FROM data
-WHERE year = 1990
 GROUP BY 1, 2
 ORDER BY 3 DESC;
 
@@ -94,8 +96,8 @@ percentage_1990 AS (SELECT * FROM data WHERE year = 1990),
 percentage_2016 AS (SELECT * FROM data WHERE year = 2016)
 
 SELECT a.region,
-       (SUM(a.forest_area) / SUM(a.land_area)) * 100 AS percentage_per_regionin_1990,
-       (SUM(b.forest_area) / SUM(b.land_area)) * 100 AS percentage_per_regionin_2016,
+       ROUND(CAST((SUM(a.forest_area) / SUM(a.land_area)) * 100 AS DECIMAL), 2) AS percentage_per_regionin_1990,
+       ROUND(CAST((SUM(b.forest_area) / SUM(b.land_area)) * 100 AS DECIMAL), 2) AS percentage_per_regionin_2016,
        CASE
            WHEN ((SUM(b.forest_area) / SUM(b.land_area)) * 100) < ((SUM(a.forest_area) / SUM(a.land_area)) * 100) THEN 'yes'
            ELSE 'no'
@@ -103,7 +105,8 @@ SELECT a.region,
 FROM percentage_1990 a
 JOIN percentage_2016 b
 ON a.country_code = b.country_code
-GROUP BY 1;
+GROUP BY 1
+ORDER BY 4 DESC;
 
 -----------------------------------------------------------------------------------------------
 
@@ -135,10 +138,10 @@ SELECT a.country_name,
        a.region,
        b.year,
        CASE WHEN b.forest_area > a.forest_area THEN 'yes' ELSE 'no' END AS increased,
-       COALESCE(a.forest_area, 0) AS forest_area_in_1990,
-       COALESCE(b.forest_area, 0) AS forest_area_in_2016,
-       ABS(a.forest_area - b.forest_area) AS difference,
-       ABS((b.forest_area - a.forest_area) / a.forest_area * 100) AS percentage
+       ROUND(CAST(COALESCE(a.forest_area, 0) AS DECIMAL), 2) AS forest_area_in_1990,
+       ROUND(CAST(COALESCE(b.forest_area, 0) AS DECIMAL), 2) AS forest_area_in_2016,
+       ROUND(CAST(ABS(a.forest_area - b.forest_area) AS DECIMAL), 2) AS difference,
+       ROUND(CAST(ABS((b.forest_area - a.forest_area) / a.forest_area * 100) AS DECIMAL), 2) AS percentage
 FROM data_1990 a
 JOIN data_2016 b
 ON a.country_code = b.country_code
@@ -172,10 +175,10 @@ SELECT a.country_name,
        a.region,
        b.year,
        CASE WHEN b.forest_area > a.forest_area THEN 'yes' ELSE 'no' END AS increased,
-       COALESCE(a.forest_area, 0) AS forest_area_in_1990,
-       COALESCE(b.forest_area, 0) AS forest_area_in_2016,
-       a.forest_area - b.forest_area AS difference,
-       ABS((b.forest_area - a.forest_area) / a.forest_area * 100) AS percentage
+       ROUND(CAST(COALESCE(a.forest_area, 0) AS DECIMAL), 2) AS forest_area_in_1990,
+       ROUND(CAST(COALESCE(b.forest_area, 0) AS DECIMAL), 2) AS forest_area_in_2016,
+       ROUND(CAST((a.forest_area - b.forest_area) AS DECIMAL), 2) AS difference,
+       ROUND(CAST(ABS((b.forest_area - a.forest_area) / a.forest_area * 100) AS DECIMAL), 2) AS percentage
 FROM data_1990 a
 JOIN data_2016 b
 ON a.country_code = b.country_code
@@ -210,10 +213,10 @@ SELECT a.country_name,
        a.region,
        b.year,
        CASE WHEN b.forest_area > a.forest_area THEN 'yes' ELSE 'no' END AS increased,
-       COALESCE(a.forest_area, 0) AS forest_area_in_1990,
-       COALESCE(b.forest_area, 0) AS forest_area_in_2016,
-       a.forest_area - b.forest_area AS difference,
-       ABS((b.forest_area - a.forest_area) / a.forest_area * 100) AS percentage
+       ROUND(CAST(COALESCE(a.forest_area, 0) AS DECIMAL), 2) AS forest_area_in_1990,
+       ROUND(CAST(COALESCE(b.forest_area, 0) AS DECIMAL), 2) AS forest_area_in_2016,
+       ROUND(CAST((a.forest_area - b.forest_area) AS DECIMAL), 2) AS difference,
+       ROUND(CAST(ABS((b.forest_area - a.forest_area) / a.forest_area * 100) AS DECIMAL), 2) AS percentage
 FROM data_1990 a
 JOIN data_2016 b
 ON a.country_code = b.country_code
@@ -242,15 +245,20 @@ INNER JOIN regions r
     ON fa.country_code = r.country_code
 WHERE fa.year IN (2016) AND la.year IN (2016)
 ORDER BY fa.country_code),
-    data_2016 AS (SELECT * FROM data WHERE year = 2016 AND forest_area IS NOT NULL AND land_area IS NOT NULL ),
+    data_2016 AS (SELECT * FROM data WHERE year = 2016 AND forest_area IS NOT NULL AND land_area IS NOT NULL)
 
-    percentile_Table AS (SELECT a.country_name ,a.forest_percentage_in_country, NTILE(4) OVER (ORDER BY a.forest_percentage_in_country) AS percentile
-                        FROM data_2016 a)
-
-SELECT pt.percentile, COUNT(*)
-FROM percentile_Table pt
+SELECT
+    CASE
+        WHEN pt.forest_percentage_in_country <= 25 THEN '0-25%'
+        WHEN pt.forest_percentage_in_country <= 50 THEN '25-50%'
+        WHEN pt.forest_percentage_in_country <= 75 THEN '50-75%'
+        WHEN pt.forest_percentage_in_country <= 100 THEN '75-100%'
+        ELSE 'N/A'
+        END AS quartiles,
+    COUNT(country_name) as countries
+FROM data_2016 pt
 GROUP BY 1
-ORDER BY 1 ASC;
+ORDER BY 1;
 
 -- Part 2
 WITH data AS (SELECT
@@ -271,12 +279,10 @@ INNER JOIN regions r
     ON fa.country_code = r.country_code
 WHERE fa.year IN (2016) AND la.year IN (2016)
 ORDER BY fa.country_code),
-    data_2016 AS (SELECT * FROM data WHERE year = 2016 AND forest_area IS NOT NULL AND land_area IS NOT NULL ),
+    data_2016 AS (SELECT * FROM data WHERE year = 2016 AND forest_area IS NOT NULL AND land_area IS NOT NULL)
 
-    percentile_Table AS (SELECT a.country_name, a.region, a.forest_percentage_in_country, NTILE(4) OVER (ORDER BY a.forest_percentage_in_country) AS percentile
-                        FROM data_2016 a)
-
-SELECT pt.percentile, pt.country_name, pt.region, pt.forest_percentage_in_country
-FROM percentile_Table pt
-WHERE pt.percentile = 4
-ORDER BY 1, 4 DESC;
+SELECT pt.country_name,
+       pt.region,
+       ROUND(CAST(pt.forest_percentage_in_country AS DECIMAL), 2)
+FROM data_2016 pt
+WHERE ROUND(CAST(pt.forest_percentage_in_country AS DECIMAL), 2) > 75;
