@@ -1,3 +1,9 @@
+/*
+ Author: Rayner Mendez
+ Udacity Web Developer Nanodegree
+ Deforestation Exploration
+ */
+
 -- Tables to insert data to local database.
 CREATE TABLE forest_area (
     country_code VARCHAR,
@@ -19,6 +25,23 @@ CREATE TABLE regions (
     region VARCHAR,
     income_group VARCHAR
 );
+
+-- Create a view to join the tables.
+CREATE OR REPLACE VIEW forestation AS
+    SELECT fa.country_code AS country_code,
+           fa.country_name AS country_name,
+           fa.year AS year,
+           fa.forest_area_sqkm AS forest_area_sqkm,
+           (la.total_area_sq_mi * 2.58999 ) AS total_area_sqkm,
+           r.region AS region,
+           r.income_group AS income_group,
+           (fa.forest_area_sqkm / (la.total_area_sq_mi * 2.58999 )) * 100 AS forestation_percentage_area
+    FROM forest_area fa
+    JOIN land_area la
+        ON fa.country_code = la.country_code
+    JOIN regions r
+        ON fa.country_code = r.country_code
+    WHERE fa.year = la.year;
 
 -- Global Situation
 WITH table_1990 AS (SELECT country_code, SUM(COALESCE(forest_area_sqkm, 0)) AS forest_area_sqkm
@@ -257,6 +280,7 @@ SELECT
         END AS quartiles,
     COUNT(country_name) as countries
 FROM data_2016 pt
+WHERE country_name != 'World'
 GROUP BY 1
 ORDER BY 1;
 
@@ -285,4 +309,5 @@ SELECT pt.country_name,
        pt.region,
        ROUND(CAST(pt.forest_percentage_in_country AS DECIMAL), 2)
 FROM data_2016 pt
-WHERE ROUND(CAST(pt.forest_percentage_in_country AS DECIMAL), 2) > 75;
+WHERE ROUND(CAST(pt.forest_percentage_in_country AS DECIMAL), 2) > 75
+AND pt.country_name != 'World';
